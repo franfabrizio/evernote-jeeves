@@ -18,6 +18,7 @@ So I wrote a script to help.
 Usage
 =====
 
+```
 Usage: jeeves.rb [options]
     -v, --verbose                    Run verbosely
     -s, --search s                   Search string to look for in notes.
@@ -34,7 +35,8 @@ Team Dev Meeting (06/05/14, IT)
 
 1:1 with James (06/04/14, Supervision)
   TODO Establish backup on-call plan during James' vacation
-  
+```
+
 Known Issues
 ============
 
