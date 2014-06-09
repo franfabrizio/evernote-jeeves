@@ -4,7 +4,7 @@ evernote-todo
 This command-line Ruby script searches for a given search string S in all notes updated in the last N days,
 and displays all lines containing that search string, along with some useful note and folder context metadata. 
 
-Use case
+Use Case
 ========
 
 I use Evernote all day long at work, sometimes making a dozen notes in a day.  I've developed a TODO habit, 
