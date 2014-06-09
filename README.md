@@ -10,7 +10,9 @@ Use Case
 I use Evernote all day long at work, sometimes making a dozen notes in a day.  I've developed a TODO habit, 
 where I'll write something like this in a note:
 
+```
 TODO Follow-up with Bob regarding the FY15 budgets
+```
 
 Problem is, at the end of the day or week, I'll have to hunt back through all of my notes to find my TODOs. 
 So I wrote a script to help.
