@@ -10,33 +10,42 @@ require 'Sanitize'
 require 'optparse'
 require 'ostruct'
 
-# options parsing
-options = OpenStruct.new
-OptionParser.new do |opts|
-  opts.banner = "Usage: jeeves.rb [options]"
+class JeevesOptionsParser
 
-  #defaults
-  options.verbose = FALSE
-  options.search = 'TODO'
-  options.days = 7
+  def self.parse(args)
+    options = OpenStruct.new
+    #defaults
+    options.verbose = FALSE
+    options.search = 'TODO'
+    options.days = 7
 
-  opts.on("-v", "--verbose", "Run verbosely") do |v|
-    options[:verbose] = v
+    opts_parser = OptionParser.new do |opts|
+      opts.banner = "Usage: jeeves.rb [options]"
+
+      opts.on("-v", "--verbose", "Run verbosely") do |v|
+        options.verbose = v
+      end
+
+      opts.on("-s", "--search s", String, "Search string to look for in notes.") do |s|
+        options.search = s
+      end
+
+      opts.on("-d", "--days N", Integer, "Number of days in the past to search.") do |d|
+        options.days = d
+      end
+
+      opts.on_tail("-h", "--help", "Show this message") do
+        puts opts
+        exit
+      end
+    end
+
+    opts_parser.parse!(args)
+    options
   end
+end
 
-  opts.on("-s", "--search", String, "Search string to look for in notes.") do |s|
-    options[:search] = s
-  end
-
-  opts.on("-d", "--days", Integer, "Number of days in the past to search.") do |d|
-    options[:days] = d
-  end
-
-  opts.on_tail("-h", "--help", "Show this message") do
-    puts opts
-    exit
-  end
-end.parse!
+options = JeevesOptionsParser.parse(ARGV)
 
 pp options
 
@@ -84,19 +93,23 @@ noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
 
 # search notes
 noteFilter = Evernote::EDAM::NoteStore::NoteFilter.new
-noteFilter.words = "updated:day-#{options.days} TODO"
+# 2 == sort by updated
+noteFilter.order = 2
+noteFilter.ascending = FALSE
+noteFilter.words = "updated:day-#{options.days} #{options.search}"
 spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
 spec.includeTitle = true
 spec.includeNotebookGuid = true
+spec.includeUpdated = true
 noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,100, spec)
 puts "There are #{noteList.totalNotes} matching notes."
 puts
 
 noteList.notes.each do |note|
-  puts "#{note.title} (#{noteStore.getNotebook(authToken, note.notebookGuid).name})"
+  puts "#{note.title} (#{Time.at(note.updated/1000).strftime("%m/%d/%y")}, #{noteStore.getNotebook(authToken, note.notebookGuid).name})"
   doc = noteStore.getNote(authToken, note.guid, true, false, false, false).content
   doc.lines.each do |line|
-    if line[/TODO/]
+    if line[/#{options.search}/i]
       puts "  -" + Sanitize.clean(line).strip
     end
   end
