@@ -1,5 +1,5 @@
-evernote-todo
-=============
+evernote-jeeves
+===============
 
 This command-line Ruby script searches for a given search string S in all notes updated in the last N days,
 and displays all lines containing that search string, along with some useful note and folder context metadata. 
