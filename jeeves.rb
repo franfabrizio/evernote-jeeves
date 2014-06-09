@@ -1,5 +1,5 @@
 
-# A simple Evernote API script that finds all lines containing TODO
+# A simple Evernote API script that finds all lines containing a search string
 # in notes updated in the past N days
 
 require 'digest/md5'
@@ -10,7 +10,7 @@ require 'Sanitize'
 require 'optparse'
 require 'ostruct'
 
-# options parsing
+# command line options parsing
 options = OpenStruct.new
 OptionParser.new do |opts|
   opts.banner = "Usage: jeeves.rb [options]"
@@ -44,9 +44,8 @@ pp options
 config = YAML.load_file("config/config.yml")
 authToken = config["config"]["authToken"]
 
-# Real applications authenticate with Evernote using OAuth, but for the
-# purpose of exploring the API, you can get a developer token that allows
-# you to access your own Evernote account. To get a developer token, visit
+# Since this app only accesses your own Evernote account, we can use a developer token
+# that allows you to access your own Evernote account. To get a developer token, visit
 # https://sandbox.evernote.com/api/DeveloperToken.action
 
 if authToken == "your developer token"
