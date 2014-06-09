@@ -14,6 +14,7 @@ require "digest/md5"
 require 'evernote-thrift'
 require "pp"
 require "yaml"
+require "Sanitize"
 
 # get the authToken from config
 config = YAML.load_file("config/config.yml")
@@ -45,8 +46,8 @@ userStore = Evernote::EDAM::UserStore::UserStore::Client.new(userStoreProtocol)
 versionOK = userStore.checkVersion("Evernote EDAMTest (Ruby)",
                                    Evernote::EDAM::UserStore::EDAM_VERSION_MAJOR,
                                    Evernote::EDAM::UserStore::EDAM_VERSION_MINOR)
-puts "Is my Evernote API version up to date?  #{versionOK}"
-puts
+#puts "Is my Evernote API version up to date?  #{versionOK}"
+#puts
 exit(1) unless versionOK
 
 # Get the URL used to interact with the contents of the user's account
@@ -60,16 +61,16 @@ noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
 noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
 
 # List all of the notebooks in the user's account
-notebooks = noteStore.listNotebooks(authToken)
-puts "Found #{notebooks.size} notebooks:"
-defaultNotebook = notebooks.first
-notebooks.each do |notebook|
-  puts "  * #{notebook.name}"
-end
+#notebooks = noteStore.listNotebooks(authToken)
+#puts "Found #{notebooks.size} notebooks:"
+#defaultNotebook = notebooks.first
+#notebooks.each do |notebook|
+#  puts "  * #{notebook.name}"
+#end
 
-puts
-puts "Creating a new note in the default notebook: #{defaultNotebook.name}"
-puts
+#puts
+#puts "Creating a new note in the default notebook: #{defaultNotebook.name}"
+#puts
 
 ## To create a new note, simply create a new Note object and fill in
 ## attributes such as the note's title.
@@ -123,13 +124,21 @@ puts
 
 # search notes
 noteFilter = Evernote::EDAM::NoteStore::NoteFilter.new
-noteFilter.words = "intitle:Kevin"
+noteFilter.words = "updated:day-7 TODO"
 spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
 spec.includeTitle = true
 spec.includeNotebookGuid = true
 noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,100, spec)
-puts noteList.totalNotes
+puts "There are #{noteList.totalNotes} matching notes."
+puts
 
-noteList.notes.each { |note|
-  puts "#{note.guid} -> #{note.title} (#{noteStore.getNotebook(authToken, note.notebookGuid).name})"
-}
+noteList.notes.each do |note|
+  puts "#{note.title} (#{noteStore.getNotebook(authToken, note.notebookGuid).name})"
+  doc = noteStore.getNote(authToken, note.guid, true, false, false, false).content
+  doc.lines.each do |line|
+    if line[/TODO/]
+      puts "  -" + Sanitize.clean(line).strip
+    end
+  end
+  puts
+end
