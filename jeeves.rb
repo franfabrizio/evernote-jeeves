@@ -6,7 +6,7 @@ require 'digest/md5'
 require 'evernote-thrift'
 require 'pp'
 require 'yaml'
-require 'Sanitize'
+require 'sanitize'
 require 'optparse'
 require 'ostruct'
 
@@ -48,15 +48,13 @@ end
 
 options = JeevesOptionsParser.parse(ARGV)
 
-pp options
-
 # get the authToken from config
 config = YAML.load_file("config/config.yml")
 authToken = config["config"]["authToken"]
 
 # Since this app only accesses your own Evernote account, we can use a developer token
-# that allows you to access your own Evernote account. To get a developer token, visit
-# https://sandbox.evernote.com/api/DeveloperToken.action
+# that allows you to access your own Evernote account and skip OAuth authentication.
+# To get a developer token, visit https://sandbox.evernote.com/api/DeveloperToken.action
 
 if authToken == "your developer token"
   puts "Please fill in your developer token"
@@ -64,10 +62,9 @@ if authToken == "your developer token"
   exit(1)
 end
 
-# Initial development is performed on our sandbox server. To use the production
-# service, change "sandbox.evernote.com" to "www.evernote.com" and replace your
-# developer token above with a token from
-# https://www.evernote.com/api/DeveloperToken.action
+# Initial development can be performed on Evernote's sandbox server. It requires a separate
+# account and authToken.  To switch to using the sandbox server, change "www.evernote.com" to
+# "sandbox.evernote.com" and replace your developer token above with a sandbox token.
 #evernoteHost = "sandbox.evernote.com"
 evernoteHost = "www.evernote.com"
 userStoreUrl = "https://#{evernoteHost}/edam/user"
@@ -75,6 +72,8 @@ userStoreUrl = "https://#{evernoteHost}/edam/user"
 userStoreTransport = Thrift::HTTPClientTransport.new(userStoreUrl)
 userStoreProtocol = Thrift::BinaryProtocol.new(userStoreTransport)
 userStore = Evernote::EDAM::UserStore::UserStore::Client.new(userStoreProtocol)
+
+# Verify your Evernote gem is up to date
 
 versionOK = userStore.checkVersion("Evernote EDAM (Ruby)",
                                    Evernote::EDAM::UserStore::EDAM_VERSION_MAJOR,
@@ -93,24 +92,37 @@ noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
 
 # search notes
 noteFilter = Evernote::EDAM::NoteStore::NoteFilter.new
-# 2 == sort by updated
+# 2 == sort results by updated
 noteFilter.order = 2
+# newest first
 noteFilter.ascending = FALSE
 noteFilter.words = "updated:day-#{options.days} #{options.search}"
+
+# We want our search results to return title, notebook GUID, and updated date
 spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
 spec.includeTitle = true
 spec.includeNotebookGuid = true
 spec.includeUpdated = true
+
+# we limit to 100 results to avoid craziness
 noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,100, spec)
-puts "There are #{noteList.totalNotes} matching notes."
-puts
+
+# time to display the results
+if options.verbose
+  puts "There are #{noteList.totalNotes} matching notes."
+  puts
+end
 
 noteList.notes.each do |note|
+  # display note metadata
   puts "#{note.title} (#{Time.at(note.updated/1000).strftime("%m/%d/%y")}, #{noteStore.getNotebook(authToken, note.notebookGuid).name})"
+  # retrieve the note - just the contents, don't need other resources
   doc = noteStore.getNote(authToken, note.guid, true, false, false, false).content
+  # look for the search string in this note's content, line-by-line
   doc.lines.each do |line|
     if line[/#{options.search}/i]
-      puts "  -" + Sanitize.clean(line).strip
+      # indentation hack
+      puts "  " + Sanitize.clean(line).strip
     end
   end
   puts
