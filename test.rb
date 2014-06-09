@@ -13,15 +13,16 @@
 require "digest/md5"
 require 'evernote-thrift'
 require "pp"
+require "yaml"
+
+# get the authToken from config
+config = YAML.load_file("config/config.yml")
+authToken = config["config"]["authToken"]
 
 # Real applications authenticate with Evernote using OAuth, but for the
 # purpose of exploring the API, you can get a developer token that allows
 # you to access your own Evernote account. To get a developer token, visit
 # https://sandbox.evernote.com/api/DeveloperToken.action
-# sandbox token
-# authToken = "S=s1:U=8c5e2:E=149ca4eecd2:C=142729dc0d5:P=1cd:A=en-devtoken:V=2:H=b9160fafc42d4a6b93c471d194c57069"
-# production token
-authToken = "S=s31:U=34de68:E=149ce152c78:C=14276640084:P=1cd:A=en-devtoken:V=2:H=b97b4059a8245faa5273328cde1784e4"
 
 if authToken == "your developer token"
   puts "Please fill in your developer token"
@@ -125,9 +126,10 @@ noteFilter = Evernote::EDAM::NoteStore::NoteFilter.new
 noteFilter.words = "intitle:Kevin"
 spec = Evernote::EDAM::NoteStore::NotesMetadataResultSpec.new
 spec.includeTitle = true
-noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,10, spec)
+spec.includeNotebookGuid = true
+noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,100, spec)
 puts noteList.totalNotes
 
 noteList.notes.each { |note|
-  puts "#{note.guid} -> #{note.title}"
+  puts "#{note.guid} -> #{note.title} (#{noteStore.getNotebook(authToken, note.notebookGuid).name})"
 }
