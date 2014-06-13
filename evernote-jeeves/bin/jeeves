@@ -1,8 +1,0 @@
-#!/usr/bin/env ruby
-
-require 'evernote/jeeves'
-
-ej = Evernote::Jeeves::JeevesRunner.new
-ej.run
-
-
