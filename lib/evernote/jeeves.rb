@@ -17,6 +17,7 @@ module Evernote
         #defaults
         options.verbose = FALSE
         options.search = 'TODO'
+        options.ignorecase = FALSE
         options.days = 7
 
         opts_parser = OptionParser.new do |opts|
@@ -28,6 +29,10 @@ module Evernote
 
           opts.on("-s", "--search s", String, "Search string to look for in notes.") do |s|
             options.search = s
+          end
+
+          opts.on("-i", "--ignorecase", "Search case-insensitively") do |i|
+            options.ignorecase = Regexp::IGNORECASE
           end
 
           opts.on("-d", "--days N", Integer, "Number of days in the past to search.") do |d|
@@ -107,25 +112,36 @@ module Evernote
         # we limit to 100 results to avoid craziness
         noteList = noteStore.findNotesMetadata(authToken,noteFilter,0,100, spec)
 
-        # time to display the results
-        if options.verbose
-          puts "There are #{noteList.totalNotes} matching notes."
-          puts
-        end
+        displayedNotes = Array.new
+        searchPattern = Regexp.new(options.search, options.ignorecase)
 
         noteList.notes.each do |note|
-          # display note metadata
-          puts "#{note.title} (#{Time.at(note.updated/1000).strftime("%m/%d/%y")}, #{noteStore.getNotebook(authToken, note.notebookGuid).name})"
           # retrieve the note - just the contents, don't need other resources
           doc = noteStore.getNote(authToken, note.guid, true, false, false, false).content
+          noteMatches = false
+          matchingLines = ""
           # look for the search string in this note's content, line-by-line
           doc.lines.each do |line|
-            if line[/#{options.search}/i]
+            if line =~ searchPattern
+              noteMatches = true
               # indentation hack
-              puts "  " + Sanitize.clean(line).strip
+              matchingLines << "  #{Sanitize.clean(line).strip}\n"
             end
           end
-          puts
+          if noteMatches
+            # display note metadata along with matching lines
+            displayedNotes << "#{note.title} (#{Time.at(note.updated/1000).strftime("%m/%d/%y")}, " +
+              "#{noteStore.getNotebook(authToken, note.notebookGuid).name})\n#{matchingLines}\n"
+          end
+        end
+
+        # time to display the results
+        if options.verbose
+          puts "There are #{displayedNotes.count} matching notes.\n\n"
+        end
+
+        displayedNotes.each do |text|
+          puts text
         end
       end
     end
