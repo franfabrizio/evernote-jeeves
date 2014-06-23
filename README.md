@@ -24,6 +24,7 @@ Usage
 Usage: jeeves.rb [options]
     -v, --verbose                    Run verbosely
     -s, --search s                   Search string to look for in notes.
+    -i, --ignorecase                 Search case-insensitively
     -d, --days N                     Number of days in the past to search.
     -h, --help                       Show this message
 
@@ -41,10 +42,6 @@ Team Dev Meeting (06/05/14, IT)
 
 Known Issues
 ============
-
-The search is case-insensitive, because that's the way Evernote does it.  However, the matching is case-sensitive,
-so it's possible to get a note with no matching lines displayed (e.g. you search "DONE", will match but not display
-lines with "done").  I'll fix this someday.
 
 Software not generally ready for distribution (no Gemfile, no VERSION, etc... etc...)
 
