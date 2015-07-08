@@ -89,8 +89,13 @@ module Evernote
         # When your application authenticates using OAuth, the NoteStore URL will
         # be returned along with the auth token in the final OAuth request.
         # In that case, you don't need to make this call.
-        noteStoreUrl = userStore.getNoteStoreUrl(authToken)
-
+        begin
+          noteStoreUrl = userStore.getNoteStoreUrl(authToken)
+        rescue Evernote::EDAM::Error::EDAMUserException => e
+          pp e
+          #puts e.getErrorCode()
+        end
+        
         noteStoreTransport = Thrift::HTTPClientTransport.new(noteStoreUrl)
         noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
         noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
@@ -147,3 +152,9 @@ module Evernote
     end
   end
 end
+
+if __FILE__ == $0
+  ej = Evernote::Jeeves::JeevesRunner.new
+  ej.run
+end
+
