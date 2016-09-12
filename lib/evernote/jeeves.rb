@@ -55,7 +55,7 @@ module Evernote
         options = JeevesOptionsParser.parse(ARGV)
 
         # get the authToken from config
-        config = YAML.load_file(File.join(File.dirname(__FILE__),"../../config/config.yml"))
+        config = YAML.load_file(File.join(ENV['HOME'], '/.jeeves/config.yml'))
         authToken = config["config"]["authToken"]
 
         # Since this app only accesses your own Evernote account, we can use a developer token
