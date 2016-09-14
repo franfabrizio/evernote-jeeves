@@ -7,11 +7,11 @@ Gem::Specification.new do |spec|
   spec.name          = "evernote-jeeves"
   spec.version       = Evernote::Jeeves::VERSION
   spec.authors       = ["Fran Fabrizio"]
-  spec.email         = ["franfabrizio@gmail.com"]
+  spec.email         = ["fran@umn.edu"]
   spec.summary       = %q{Harvests lines with specific keywords from your Evernote notes.}
   spec.description   = %q{}
   spec.homepage      = ""
-  spec.license       = "MIT"
+  spec.license       = "MPLv2"
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
