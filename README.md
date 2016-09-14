@@ -43,6 +43,6 @@ Team Dev Meeting (06/05/14, IT)
 Known Issues
 ============
 
-Software not generally ready for distribution (no Gemfile, no VERSION, etc... etc...)
+Software not generally ready for distribution.  Packaged as gem evernote-jeeves on rubygems, but I don't have installation worked out yet.
 
 
