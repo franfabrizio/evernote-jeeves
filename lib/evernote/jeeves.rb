@@ -100,7 +100,7 @@ module Evernote
           pp e
           #puts e.getErrorCode()
         end
-        
+
         noteStoreTransport = Thrift::HTTPClientTransport.new(noteStoreUrl)
         noteStoreProtocol = Thrift::BinaryProtocol.new(noteStoreTransport)
         noteStore = Evernote::EDAM::NoteStore::NoteStore::Client.new(noteStoreProtocol)
@@ -131,6 +131,12 @@ module Evernote
           noteMatches = false
           matchingLines = ""
           # look for the search string in this note's content, line-by-line
+          puts doc
+          doc.gsub!(/<\/div><div>/m, "\n")
+          doc.gsub!(/<div>(.*?)<\/div>/m, '\1')
+          doc.gsub!(/<br\/>/m, "\n")
+          puts "AFTER"
+          puts doc
           doc.lines.each do |line|
             if line =~ searchPattern
               noteMatches = true
@@ -162,4 +168,3 @@ if __FILE__ == $0
   ej = Evernote::Jeeves::JeevesRunner.new
   ej.run
 end
-
